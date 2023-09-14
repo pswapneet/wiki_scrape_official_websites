@@ -28,12 +28,16 @@ output_prefix = sys.argv[1]
 timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 
 # Output text file to save scraped URLs
-output_txt = os.path.join(output_dir, \
-f'{output_prefix}_{timestamp}.txt')
+output_txt = os.path.join(output_dir, f'{output_prefix}_{timestamp}.txt')
 
 # Output text file to save URLs with errors
-error_txt = os.path.join(error_dir, \
-f'{output_prefix}_{timestamp}_errors.txt')
+error_txt = os.path.join(error_dir, f'{output_prefix}_{timestamp}_errors.txt')
+
+# Output CSV file
+output_csv = os.path.join(error_dir, f'{output_prefix}_{timestamp}_log.csv')
+
+# Initialize a list to store rows for the CSV file
+csv_rows = []
 
 # Initialize a list to store scraped URLs
 scraped_urls = []
@@ -47,12 +51,13 @@ error_urls = []
 
 # Read the CSV file and scrape each URL
 with open(input_file, 'r') as csv_file:
-    csv_reader = csv.reader(csv_file)
+    csv_reader = csv.reader(csv_file, delimiter='\t')
     for row in csv_reader:
         # Remove leading/trailing whitespace
         raw_url = row[0].strip()
         # Encode the URL to handle special characters
-        url = urllib.parse.quote(raw_url, safe='/')
+        #url = urllib.parse.quote(raw_url, safe='/:')
+        url = raw_url
 
         # Send a GET request to the URL
         response = requests.get(url)
@@ -82,6 +87,9 @@ with open(input_file, 'r') as csv_file:
             # Append the scraped URL to the list
             scraped_urls.append(official_site_url)
 
+            # Append the data for the CSV file
+            csv_rows.append([raw_url, url, official_site_url])
+
             # Print progress message and increment success_count
             print("Scraped webpage:", url)
             success_count += 1
@@ -98,6 +106,14 @@ with open(input_file, 'r') as csv_file:
             print(f"Failed to retrieve the webpage {url}. Status code:", response.status_code)
             error_count += 1
             error_urls.append(url)
+
+# Output CSV file
+with open(output_csv, 'w', newline='') as csvfile:
+    csv_writer = csv.writer(csvfile)
+    # Write header row
+    csv_writer.writerow(['Input URL', 'Requested URL', 'Scraped URL'])
+    # Write the rows collected during scraping
+    csv_writer.writerows(csv_rows)
 
 # Save the scraped URLs to the output text file
 with open(output_txt, 'w') as txt_file:
