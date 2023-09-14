@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import csv
-#import urllib.parse
+import urllib.parse
 import sys
 import os
 from dotenv import load_dotenv
@@ -49,10 +49,10 @@ error_urls = []
 with open(input_file, 'r') as csv_file:
     csv_reader = csv.reader(csv_file)
     for row in csv_reader:
-        raw_url = row[0].strip()  # Remove leading/trailing whitespace
+        # Remove leading/trailing whitespace
+        raw_url = row[0].strip()
         # Encode the URL to handle special characters
-        #url = urllib.parse.quote(raw_url, safe='/:')
-        url = raw_url
+        url = urllib.parse.quote(raw_url, safe='/')
 
         # Send a GET request to the URL
         response = requests.get(url)
